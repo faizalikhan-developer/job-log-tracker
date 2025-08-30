@@ -1,12 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import {
-  getFirestore,
-  collection,
-  getDocs,
-  setDoc,
-  doc,
-  enableIndexedDbPersistence,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
 } from "firebase/firestore";
 
 // Replace with your Firebase config
@@ -22,11 +19,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Enable offline persistence
-enableIndexedDbPersistence(db).catch((err) => {
-  console.error("Firestore offline persistence error:", err);
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
 });
 
 // Sign in anonymously
@@ -41,17 +37,19 @@ export async function initAuth() {
 
 // Push local jobs to Firebase
 export async function pushToFirebase(localJobs) {
+  const { collection, doc, setDoc } = await import("firebase/firestore");
   const jobsRef = collection(db, "jobs");
   for (const job of localJobs) {
-    await setDoc(doc(jobsRef, job.id), { ...job, synced: true, id: job.id }); // Include id in data
+    await setDoc(doc(jobsRef, job.id), { ...job, synced: true, id: job.id });
   }
 }
 
 // Pull jobs from Firebase
 export async function pullFromFirebase() {
+  const { collection, getDocs } = await import("firebase/firestore");
   const jobsRef = collection(db, "jobs");
   const snapshot = await getDocs(jobsRef);
-  return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })); // Include doc ID
+  return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 }
 
 export default db;
