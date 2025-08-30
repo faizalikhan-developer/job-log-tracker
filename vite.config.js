@@ -10,10 +10,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "*.png"],
-      manifest: false, // Use public/manifest.json
+      includeAssets: [
+        "favicon.ico",
+        "apple-touch-icon.png",
+        "*.png",
+        "manifest.json",
+      ],
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,ico}"],
+        globPatterns: ["**/*.{js,css,html,png,ico,json}"], // Include json for manifest
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === "document",
@@ -22,11 +26,16 @@ export default defineConfig({
           },
           {
             urlPattern: ({ request }) =>
-              ["script", "style", "image"].includes(request.destination),
+              ["script", "style", "image", "manifest"].includes(
+                request.destination
+              ),
             handler: "StaleWhileRevalidate",
             options: { cacheName: "asset-cache" },
           },
         ],
+      },
+      devOptions: {
+        enabled: true, // Enable service worker in dev mode for testing
       },
     }),
   ],
