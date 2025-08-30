@@ -14,6 +14,7 @@ import {
   pushJobs,
 } from "./services/db";
 import { initAuth } from "./services/firebase";
+import InstallPrompt from "./components/InstallPrompt";
 
 function App() {
   const [jobs, setJobs] = useState([]);
@@ -23,6 +24,7 @@ function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   // Initialize Firebase auth on mount
   useEffect(() => {
@@ -48,6 +50,25 @@ function App() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  // Capture install prompt with debugging
+  useEffect(() => {
+    const handler = (e) => {
+      console.log("beforeinstallprompt fired:", e);
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  // Log app installed event
+  useEffect(() => {
+    window.addEventListener("appinstalled", () => {
+      console.log("PWA installed");
+      toast.success("App installed successfully");
+    });
   }, []);
 
   // Load jobs when filters change
@@ -282,6 +303,9 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* Add the InstallPrompt component here - it will position itself */}
+        <InstallPrompt />
 
         <ToastContainer />
       </div>

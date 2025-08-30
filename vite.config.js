@@ -13,11 +13,13 @@ export default defineConfig({
       includeAssets: [
         "favicon.ico",
         "apple-touch-icon.png",
-        "*.png",
+        "android-chrome-192x192.png",
+        "android-chrome-512x512.png",
+        "maskable-icon.png",
         "manifest.json",
       ],
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,ico,json}"], // Include json for manifest
+        globPatterns: ["**/*.{js,css,html,png,ico,json}"],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === "document",
@@ -35,7 +37,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true, // Enable service worker in dev mode for testing
+        enabled: true,
       },
     }),
   ],
