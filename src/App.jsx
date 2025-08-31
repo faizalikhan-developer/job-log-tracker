@@ -92,6 +92,8 @@ function App() {
 
   // Add new job
   const handleAddJob = async (job) => {
+    console.log(job);
+    
     try {
       await addJob(job);
       await loadJobs();

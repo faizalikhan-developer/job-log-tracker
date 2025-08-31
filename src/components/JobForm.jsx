@@ -70,7 +70,7 @@ function JobForm({ onSubmit, onClose, initialData }) {
           </h2>
         </div>
 
-        <div className="space-y-5">
+        <form onSubmit={handleSubmit(submitHandler)} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-purple-300 mb-2 uppercase tracking-wide">
               Company
@@ -310,6 +310,7 @@ function JobForm({ onSubmit, onClose, initialData }) {
             )}
           </div>
 
+          {/* MOVED BUTTONS INSIDE THE FORM */}
           <div className="sticky bottom-0 bg-gradient-to-r from-gray-800 to-gray-900 pt-6 flex justify-end space-x-4 border-t border-gray-700/50 -mx-6 px-6 -mb-6 pb-6">
             <button
               type="button"
@@ -342,38 +343,38 @@ function JobForm({ onSubmit, onClose, initialData }) {
               {initialData ? "Update" : "Add"}
             </button>
           </div>
-        </div>
+        </form>
+
+        <style jsx>{`
+          @keyframes fade-in {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
+          @keyframes scale-in {
+            from {
+              opacity: 0;
+              transform: scale(0.95) translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+
+          .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+          }
+
+          .animate-scale-in {
+            animation: scale-in 0.3s ease-out;
+          }
+        `}</style>
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 }
