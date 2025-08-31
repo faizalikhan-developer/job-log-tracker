@@ -39,13 +39,15 @@ export async function getJobs() {
 export async function getJobsByFilter(searchTerm, startDate, endDate) {
   let query = db.jobs;
   if (searchTerm) {
-    query = query.filter(job => job.company.toLowerCase().includes(searchTerm.toLowerCase()));
+    query = query.filter((job) =>
+      job.company.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }
   if (startDate) {
-    query = query.filter(job => job.day >= startDate);
+    query = query.filter((job) => job.day >= startDate);
   }
   if (endDate) {
-    query = query.filter(job => job.day <= endDate);
+    query = query.filter((job) => job.day <= endDate);
   }
   return query.toArray();
 }
@@ -91,11 +93,19 @@ export async function syncJobs() {
       )}`
     );
   }
+
   // Pull from Firebase
   const firebaseJobs = await pullFromFirebase();
-  // Clear local DB and replace with Firebase data
+
+  // FIXED: Always clear local DB and replace with Firebase data
+  // This ensures that deleted jobs are removed from local storage
+  await db.jobs.clear();
+
+  // Add Firebase jobs back (if any exist)
   if (firebaseJobs.length > 0) {
-    await db.jobs.clear();
     await db.jobs.bulkAdd(firebaseJobs);
   }
+
+  // Also clear any lingering deleted jobs records since we've synced
+  await db.deletedJobs.clear();
 }
