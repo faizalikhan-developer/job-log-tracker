@@ -1,4 +1,71 @@
-function JobList({ jobs, onEdit, onDelete }) {
+import { Download } from "lucide-react";
+import { useState } from "react";
+import * as XLSX from "xlsx";
+
+function JobList({ jobs, onEdit, onDelete, currentPage, setCurrentPage }) {
+  const jobsPerPage = 5;
+
+  const sortedJobs = [...jobs].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+
+  const totalPages = Math.ceil(sortedJobs.length / jobsPerPage);
+
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = sortedJobs.slice(indexOfFirstJob, indexOfLastJob);
+
+  const paginate = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const delta = 2; // how many pages to show around current
+    const range = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      range.unshift("...");
+    }
+    if (currentPage + delta < totalPages - 1) {
+      range.push("...");
+    }
+
+    range.unshift(1);
+    if (totalPages > 1) range.push(totalPages);
+
+    return range;
+  };
+
+  const downloadExcel = () => {
+    const data = jobs.map((job) => ({
+      Company: job.company,
+      Date: job.day,
+      "Mail Delivered": job.mailDelivered ? "Yes" : "No",
+      "Resume Format": Array.isArray(job.resumeFormat)
+        ? job.resumeFormat.join(", ")
+        : [job.atsResume, job.humanResume].filter(Boolean).join(", "),
+      "Mail Status": job.mailStatus || "-",
+      Response: job.response || "Pending",
+      Platforms: Array.isArray(job.platforms)
+        ? job.platforms.join(", ")
+        : job.platforms || "-",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Jobs");
+    XLSX.writeFile(workbook, "jobs_list.xlsx");
+  };
+
   // console.log(jobs);
 
   const getStatusColor = (status) => {
@@ -38,23 +105,39 @@ function JobList({ jobs, onEdit, onDelete }) {
 
   return (
     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-2xl border border-gray-700/50 backdrop-blur-sm">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg">
-          <svg
-            className="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
+      {/* Header + Download Button */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-white">Job Applications</h2>
         </div>
-        <h2 className="text-2xl font-bold text-white">Job Applications</h2>
+
+        <button
+          onClick={downloadExcel}
+          className="flex items-center space-x-2 px-4 py-2 
+             bg-emerald-600/20 hover:bg-emerald-600/30 
+             text-emerald-300 border border-emerald-500/30 
+             rounded-lg transition-colors duration-200 
+             text-sm font-medium"
+          title="Download Excel"
+        >
+          <Download className="w-5 h-5" /> {/* ✅ Lightweight icon */}
+          <span className="hidden sm:inline">Download Excel</span>
+        </button>
       </div>
 
       <div className="overflow-x-auto">
@@ -89,7 +172,7 @@ function JobList({ jobs, onEdit, onDelete }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700/50">
-              {jobs.length === 0 ? (
+              {currentJobs.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center space-y-3">
@@ -117,7 +200,7 @@ function JobList({ jobs, onEdit, onDelete }) {
                   </td>
                 </tr>
               ) : (
-                jobs.map((job, index) => {
+                currentJobs.map((job, index) => {
                   // ✅ Migration: convert old ats/human fields to new resumeFormat array
                   const resumeFormat = Array.isArray(job.resumeFormat)
                     ? job.resumeFormat
@@ -272,6 +355,46 @@ function JobList({ jobs, onEdit, onDelete }) {
           </table>
         </div>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-6 space-x-2">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-40"
+          >
+            Prev
+          </button>
+
+          {getPageNumbers().map((page, i) =>
+            page === "..." ? (
+              <span key={i} className="px-3 py-1.5 text-gray-400">
+                ...
+              </span>
+            ) : (
+              <button
+                key={page}
+                onClick={() => paginate(page)}
+                className={`px-3 py-1.5 rounded-lg ${
+                  currentPage === page
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                {page}
+              </button>
+            )
+          )}
+
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

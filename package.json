@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.1.12",
     "autoprefixer": "^10.4.21",
     "firebase": "^12.2.1",
+    "lucide-react": "^0.542.0",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -20,7 +21,8 @@
     "react-toastify": "^11.0.5",
     "tailwindcss": "^4.1.12",
     "uuid": "^11.1.0",
-    "workbox-window": "^7.3.0"
+    "workbox-window": "^7.3.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

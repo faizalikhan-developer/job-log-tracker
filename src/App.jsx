@@ -25,6 +25,7 @@ function App() {
   const [editingJob, setEditingJob] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Initialize Firebase auth on mount
   useEffect(() => {
@@ -74,6 +75,7 @@ function App() {
   // Load jobs when filters change
   useEffect(() => {
     loadJobs();
+    setCurrentPage(1); // Reset to first page
   }, [searchTerm, startDate, endDate]);
 
   // Load jobs from IndexedDB
@@ -92,8 +94,6 @@ function App() {
 
   // Add new job
   const handleAddJob = async (job) => {
-    console.log(job);
-    
     try {
       await addJob(job);
       await loadJobs();
@@ -286,6 +286,8 @@ function App() {
               setIsFormOpen(true);
             }}
             onDelete={handleDeleteJob}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
           />
         </div>
 
